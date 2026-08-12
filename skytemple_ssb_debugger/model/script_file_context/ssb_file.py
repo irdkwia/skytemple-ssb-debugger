@@ -93,6 +93,7 @@ class SsbFileScriptFileContext(AbstractScriptFileContext):
                 exps_exception_callback(sys.exc_info(), ex)
             else:
                 load_view_callback(self._ssb_file.exps.text, 'exps')
+            self._after_load(after_callback)
 
         def gtk__chose_force_load():
             # we lazily load in the GTK thread now:
@@ -104,6 +105,7 @@ class SsbFileScriptFileContext(AbstractScriptFileContext):
                 exps_exception_callback(sys.exc_info(), ex)
             else:
                 load_view_callback(self._ssb_file.exps.text, 'exps')
+            self._after_load(after_callback)
 
         def load_thread():
             try:
@@ -116,11 +118,12 @@ class SsbFileScriptFileContext(AbstractScriptFileContext):
                 logger.error(f"Error on load.", exc_info=ex)
                 exc_info = sys.exc_info()
                 GLib.idle_add(partial(exps_exception_callback, exc_info, ex))
+                GLib.idle_add(partial(self._after_load, after_callback))
             else:
                 GLib.idle_add(partial(
                     load_view_callback, self._ssb_file.exps.text, 'exps'
                 ))
-            GLib.idle_add(partial(self._after_load, after_callback))
+                GLib.idle_add(partial(self._after_load, after_callback))
 
         threading.Thread(target=load_thread).start()
 
